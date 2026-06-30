@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -35,10 +35,39 @@ export default function OnboardingScreen() {
   const [familyAction, setFamilyAction] = useState<FamilyAction>('create')
   const [familyName, setFamilyName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const [familyInviteCode, setFamilyInviteCode] = useState('') // generated code shown to family member
   const [elderName, setElderName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
 
   function clearError() { setError(null) }
+
+  // ── Auto-resume onboarding if already logged in ────────────────────────────
+  useEffect(() => {
+    async function checkExistingUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, full_name')
+          .eq('id', user.id)
+          .maybeSingle()
+        
+        if (profile?.full_name) {
+          setFullName(profile.full_name)
+          if (profile.role && profile.role !== 'family_member') {
+            // 'family_member' is the default inserted by the trigger. If they 
+            // explicitly picked 'elder', they should go straight to step 3.
+            setRole(profile.role as Role)
+            setStep(3)
+          } else {
+            // They have a name but haven't explicitly picked a role yet
+            setStep(2)
+          }
+        }
+      }
+    }
+    checkExistingUser()
+  }, [])
 
   // ── Step 1: Account creation ───────────────────────────────────────────────
   async function handleCreateAccount() {
@@ -53,7 +82,10 @@ export default function OnboardingScreen() {
     clearError()
     setLoading(true)
 
-    const { error: signUpErr } = await supabase.auth.signUp({ email, password })
+    const { data, error: signUpErr } = await supabase.auth.signUp({ email, password })
+    if (data?.user) {
+      await supabase.from('profiles').update({ full_name: fullName }).eq('id', data.user.id)
+    }
     setLoading(false)
 
     if (signUpErr) {
@@ -64,8 +96,16 @@ export default function OnboardingScreen() {
   }
 
   // ── Step 2: Role selection ─────────────────────────────────────────────────
-  function handleRoleSelect(selectedRole: Role) {
+  async function handleRoleSelect(selectedRole: Role) {
     setRole(selectedRole)
+    // Write the role to the DB immediately so the profile is always consistent
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ role: selectedRole })
+        .eq('id', user.id)
+    }
     setStep(3)
   }
 
@@ -78,11 +118,17 @@ export default function OnboardingScreen() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Update profile with name + role
-      await supabase
+      // Upsert profile — same pattern as elder flow, ensures the correct role
+      // is written atomically even if the DB trigger hasn't fired yet.
+      const { error: profileErr } = await supabase
         .from('profiles')
-        .update({ full_name: fullName, role: 'family_member' })
-        .eq('id', user.id)
+        .upsert({ id: user.id, full_name: fullName, role: 'family_member', email: user.email! })
+
+      if (profileErr) {
+        setError('Could not save your profile. Please try again.')
+        setLoading(false)
+        return
+      }
 
       let familyId: string
 
@@ -92,15 +138,16 @@ export default function OnboardingScreen() {
           setLoading(false)
           return
         }
-        // Create the family
+        // Create the family — the DB trigger auto-generates invite_code
         const { data: family, error: familyErr } = await supabase
           .from('families')
           .insert({ name: familyName.trim() })
-          .select('id')
+          .select('id, invite_code')
           .single()
 
         if (familyErr || !family) throw new Error('Could not create family.')
-        familyId = family.id
+        familyId = (family as any).id
+        setFamilyInviteCode((family as any).invite_code ?? '')
 
         // Add current user as caregiver
         await supabase.from('family_members').insert({
@@ -110,7 +157,7 @@ export default function OnboardingScreen() {
           is_primary_caregiver: true,
         })
 
-        setStep(4) // Go to add elder step
+        setStep(4) // Go to show invite code step
       } else {
         // Join existing family with invite code
         if (!inviteCode.trim()) {
@@ -118,19 +165,16 @@ export default function OnboardingScreen() {
           setLoading(false)
           return
         }
-        // For now, treat invite code as family ID (real implementation would look up by code)
-        const { data: family, error: lookupErr } = await supabase
-          .from('families')
-          .select('id')
-          .eq('id', inviteCode.trim())
-          .single()
+        // Look up family by the short invite_code via secure RPC
+        const { data: familyIdFromRpc, error: lookupErr } = await supabase
+          .rpc('lookup_family_by_code', { code: inviteCode.trim().toUpperCase() })
 
-        if (lookupErr || !family) {
+        if (lookupErr || !familyIdFromRpc) {
           setError('Invalid invite code. Please check and try again.')
           setLoading(false)
           return
         }
-        familyId = family.id
+        familyId = familyIdFromRpc as string
 
         await supabase.from('family_members').insert({
           family_id: familyId,
@@ -182,28 +226,37 @@ export default function OnboardingScreen() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+      console.log('[ElderJoin] User ID:', user.id)
 
-      const { data: family, error: lookupErr } = await supabase
-        .from('families')
-        .select('id')
-        .eq('id', inviteCode.trim())
-        .single()
+      const { data: familyIdFromRpc, error: lookupErr } = await supabase
+        .rpc('lookup_family_by_code', { code: inviteCode.trim().toUpperCase() })
 
-      if (lookupErr || !family) {
+      console.log('[ElderJoin] Family lookup result:', { familyIdFromRpc, lookupErr })
+
+      if (lookupErr || !familyIdFromRpc) {
         setError('Invalid invite code. Please ask your family member for the correct code.')
         setLoading(false)
         return
       }
 
-      // Update profile role to elder
-      await supabase
+      // Upsert profile — ensures the row exists with the correct role even if
+      // the Supabase trigger hasn't created it yet.
+      const { data: upsertData, error: profileErr } = await supabase
         .from('profiles')
-        .update({ full_name: fullName, role: 'elder' })
-        .eq('id', user.id)
+        .upsert({ id: user.id, full_name: fullName, role: 'elder', email: user.email! })
+        .select()
+
+      console.log('[ElderJoin] Profile upsert result:', { upsertData, profileErr })
+
+      if (profileErr) {
+        setError('Could not save your profile. Please try again.')
+        setLoading(false)
+        return
+      }
 
       // Add to family as elder
       await supabase.from('family_members').insert({
-        family_id: family.id,
+        family_id: familyIdFromRpc as string,
         user_id: user.id,
         role: 'elder',
         is_primary_caregiver: false,
@@ -214,6 +267,11 @@ export default function OnboardingScreen() {
       setError(err.message ?? 'Something went wrong. Please try again.')
     }
     setLoading(false)
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.replace('/(auth)/login')
   }
 
   if (loading) return <LoadingSpinner fullscreen />
@@ -351,6 +409,10 @@ export default function OnboardingScreen() {
             />
 
             <Button label="Join Family" onPress={handleElderJoin} size="elder" style={styles.btn} />
+            
+            <TouchableOpacity onPress={handleSignOut}>
+              <Text style={styles.link}>Wrong account? Sign out</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -359,12 +421,22 @@ export default function OnboardingScreen() {
           <View>
             <Text style={styles.heading}>Who are you caring for?</Text>
             <Text style={styles.subheading}>
-              Enter the elder's name. They'll join using an invite code later.
+              Enter the elder's name to set up their dashboard.
             </Text>
 
             <Text style={styles.label}>Elder's name</Text>
             <TextInput style={styles.input} placeholder="e.g. Margaret Johnson"
               placeholderTextColor={Colors.textLight} value={elderName} onChangeText={setElderName} />
+
+            {familyAction === 'create' && familyInviteCode ? (
+              <View style={styles.inviteCodeBox}>
+                <Text style={styles.inviteCodeLabel}>Your Family Invite Code</Text>
+                <Text style={styles.inviteCodeText}>{familyInviteCode}</Text>
+                <Text style={styles.inviteCodeHint}>
+                  Write this down! Your elder will need it to join the family.
+                </Text>
+              </View>
+            ) : null}
 
             <Button label="Continue" onPress={handleAddElder} size="lg" style={styles.btn} />
           </View>
@@ -430,4 +502,17 @@ const styles = StyleSheet.create({
   modeTabActive: { backgroundColor: Colors.background, elevation: 2 },
   modeTabText: { fontSize: 14, fontWeight: '500', color: Colors.textSecondary },
   modeTabTextActive: { color: Colors.text, fontWeight: '700' },
+  inviteCodeBox: {
+    backgroundColor: '#f0fdf4',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: Colors.success,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  inviteCodeLabel: { fontSize: 14, fontWeight: 'bold', color: Colors.success, textTransform: 'uppercase', marginBottom: 8 },
+  inviteCodeText: { fontSize: 32, fontWeight: '900', letterSpacing: 8, color: Colors.text, marginBottom: 8 },
+  inviteCodeHint: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center' },
 })

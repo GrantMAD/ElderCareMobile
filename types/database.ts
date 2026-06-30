@@ -62,6 +62,7 @@ export interface Database {
           subscription_tier: 'free' | 'basic' | 'premium'
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
+          invite_code: string | null
           created_at: string
         }
         Insert: {
@@ -70,6 +71,7 @@ export interface Database {
           subscription_tier?: 'free' | 'basic' | 'premium'
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          invite_code?: string | null
           created_at?: string
         }
         Update: {
@@ -77,6 +79,7 @@ export interface Database {
           subscription_tier?: 'free' | 'basic' | 'premium'
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          invite_code?: string | null
         }
         Relationships: any[]
       }

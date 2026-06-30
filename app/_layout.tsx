@@ -66,26 +66,44 @@ export default function RootLayout() {
       .from('profiles')
       .select('role, full_name')
       .eq('id', activeSession.user.id)
-      .single()
+      .maybeSingle()
 
     const profile = data as any
     const hasName = !!profile?.full_name
     const hasRole = !!profile?.role
 
-    if (hasName && hasRole) {
+    // Also check if the user is actually linked to a family — if not,
+    // they are mid-onboarding regardless of what's in their profile row.
+    const { data: memberRow } = await supabase
+      .from('family_members')
+      .select('id')
+      .eq('user_id', activeSession.user.id)
+      .maybeSingle()
+
+    const inFamily = !!memberRow
+
+    if (hasName && hasRole && inFamily) {
       // Fully set up — go to dashboard
-      router.replace(profile.role === 'elder' ? '/(elder)/' : '/(family)/')
+      const target = profile.role === 'elder' ? '/(elder)/' : '/(family)/'
+      const targetGroup = profile.role === 'elder' ? '(elder)' : '(family)'
+      if (!(segments as string[]).includes(targetGroup)) {
+        router.replace(target)
+      }
       return
     }
 
     if (hasRole && !hasName) {
       // Existing web user — just needs a name
-      router.replace('/(auth)/complete-profile')
+      if (!(segments as string[]).includes('complete-profile')) {
+        router.replace('/(auth)/complete-profile')
+      }
       return
     }
 
-    // Brand new — needs full onboarding
-    router.replace('/(auth)/onboarding')
+    // Brand new or incomplete onboarding — go to onboarding
+    if (!(segments as string[]).includes('onboarding')) {
+      router.replace('/(auth)/onboarding')
+    }
   }
 
   // ── 4. Notification listeners ────────────────────────────────────────────

@@ -41,6 +41,7 @@ export interface Family {
   subscription_tier: SubscriptionTier
   stripe_customer_id?: string
   stripe_subscription_id?: string
+  invite_code?: string
   created_at: string
 }
 

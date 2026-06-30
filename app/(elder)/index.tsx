@@ -1,43 +1,141 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { supabase } from '../../lib/supabase'
+import React from 'react'
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
+import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/colors'
+import { SOSButton } from '../../components/elder/SOSButton'
+import { Button } from '../../components/shared/Button'
+import { useSession } from '../../hooks/useSession'
+import { useMedications } from '../../hooks/useMedications'
+import { useCheckins } from '../../hooks/useCheckins'
+import { useAppointments } from '../../hooks/useAppointments'
 
-export default function ElderDashboardPlaceholder() {
+export default function ElderDashboard() {
+  const router = useRouter()
+  const { elderId, familyId } = useSession()
+  
+  const { medications, refresh: refreshMeds, loading: loadingMeds } = useMedications(elderId)
+  const { todaysCheckin, refresh: refreshCheckin, loading: loadingCheckin } = useCheckins(elderId)
+  const { upcomingAppointments, refresh: refreshAppts, loading: loadingAppts } = useAppointments(elderId)
+
+  const refreshing = loadingMeds || loadingCheckin || loadingAppts
+
+  const onRefresh = React.useCallback(() => {
+    refreshMeds()
+    refreshCheckin()
+    refreshAppts()
+  }, [refreshMeds, refreshCheckin, refreshAppts])
+
+  const nextAppt = upcomingAppointments[0]
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.emoji}>🌿</Text>
-      <Text style={styles.title}>Elder Dashboard</Text>
-      <Text style={styles.subtitle}>Phase 2 — Coming soon!</Text>
-      <Text style={styles.body}>
-        You're successfully logged in as an Elder. The full dashboard is being built.
-      </Text>
-      <TouchableOpacity
-        style={styles.btn}
-        onPress={() => supabase.auth.signOut()}
-      >
-        <Text style={styles.btnText}>Sign Out</Text>
-      </TouchableOpacity>
-    </View>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      <Text style={styles.greeting}>Welcome Back</Text>
+      
+      <SOSButton elderId={elderId} familyId={familyId} />
+      
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Daily Check-In</Text>
+        {todaysCheckin ? (
+          <View style={styles.statusCard}>
+            <Text style={styles.statusText}>✓ Completed for today</Text>
+          </View>
+        ) : (
+          <Button 
+            label="START CHECK-IN" 
+            size="elder" 
+            onPress={() => router.push('/(elder)/checkin')} 
+          />
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Medications</Text>
+        <Button 
+          label={`VIEW MEDS (${medications.length})`} 
+          variant="secondary" 
+          size="elder" 
+          onPress={() => router.push('/(elder)/medications')} 
+        />
+      </View>
+
+      {nextAppt && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Next Appointment</Text>
+          <View style={styles.apptCard}>
+            <Text style={styles.apptDate}>
+              {new Date(nextAppt.appointment_date!).toLocaleDateString()}
+            </Text>
+            <Text style={styles.apptDoc}>Dr. {nextAppt.doctor_name}</Text>
+          </View>
+          <Button 
+            label="VIEW ALL" 
+            variant="ghost" 
+            size="lg" 
+            onPress={() => router.push('/(elder)/appointments')} 
+          />
+        </View>
+      )}
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
     backgroundColor: Colors.background,
   },
-  emoji: { fontSize: 64, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: Colors.text, marginBottom: 8 },
-  subtitle: { fontSize: 16, color: Colors.primary, fontWeight: '600', marginBottom: 16 },
-  body: { fontSize: 15, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-  btn: {
-    backgroundColor: Colors.danger,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
+  content: {
+    padding: 16,
+    paddingBottom: 32,
   },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  greeting: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 16,
+    color: Colors.text,
+  },
+  section: {
+    marginTop: 32,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: Colors.text,
+  },
+  statusCard: {
+    backgroundColor: '#f0fdf4',
+    padding: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.success,
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.success,
+  },
+  apptCard: {
+    backgroundColor: '#f3f4f6',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  apptDate: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  apptDoc: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.text,
+  }
 })
