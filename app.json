@@ -17,7 +17,10 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Elder Care Companion uses your location to let family members know you are safe.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Elder Care Companion uses your location in the background to update your family.",
-        "UIBackgroundModes": ["location", "fetch"]
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ]
       },
       "entitlements": {
         "aps-environment": "production"
@@ -55,7 +58,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Elder Care Companion to use your location."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "scheme": "eldercare",
     "extra": {

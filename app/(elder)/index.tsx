@@ -11,7 +11,7 @@ import { useAppointments } from '../../hooks/useAppointments'
 
 export default function ElderDashboard() {
   const router = useRouter()
-  const { elderId, familyId } = useSession()
+  const { elderId, familyId, loading: sessionLoading } = useSession()
   
   const { medications, refresh: refreshMeds, loading: loadingMeds } = useMedications(elderId)
   const { todaysCheckin, refresh: refreshCheckin, loading: loadingCheckin } = useCheckins(elderId)
@@ -35,7 +35,7 @@ export default function ElderDashboard() {
     >
       <Text style={styles.greeting}>Welcome Back</Text>
       
-      <SOSButton elderId={elderId} familyId={familyId} />
+      <SOSButton elderId={elderId} familyId={familyId} disabled={sessionLoading} />
       
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Daily Check-In</Text>
