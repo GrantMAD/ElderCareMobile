@@ -4,8 +4,8 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
+  StyleProp,
   ViewStyle,
-  TextStyle,
 } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
@@ -20,7 +20,9 @@ interface ButtonProps {
   size?: ButtonSize
   disabled?: boolean
   loading?: boolean
-  style?: ViewStyle
+  style?: StyleProp<ViewStyle>
+  accessibilityLabel?: string
+  accessibilityHint?: string
 }
 
 export function Button({
@@ -31,6 +33,8 @@ export function Button({
   disabled = false,
   loading = false,
   style,
+  accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   async function handlePress() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -57,6 +61,10 @@ export function Button({
       style={containerStyle}
       onPress={handlePress}
       disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading }}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={accessibilityHint}
       activeOpacity={0.8}
     >
       {loading ? (

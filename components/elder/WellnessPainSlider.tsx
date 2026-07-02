@@ -38,9 +38,11 @@ export function WellnessPainSlider({ value, onChange, onNext }: WellnessPainSlid
           size="elder" 
           style={styles.stepBtn}
           disabled={value === 0}
+          accessibilityLabel="Decrease pain score"
+          accessibilityHint="Reduces your current pain score by one"
         />
         <View style={styles.valueContainer}>
-          <Text style={styles.value}>{value}</Text>
+          <Text style={styles.value} accessibilityLabel={`Current pain score ${value}`}>{value}</Text>
         </View>
         <Button 
           label="+" 
@@ -49,6 +51,8 @@ export function WellnessPainSlider({ value, onChange, onNext }: WellnessPainSlid
           size="elder" 
           style={styles.stepBtn}
           disabled={value === 10}
+          accessibilityLabel="Increase pain score"
+          accessibilityHint="Raises your current pain score by one"
         />
       </View>
 

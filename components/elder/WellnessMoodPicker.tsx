@@ -32,6 +32,11 @@ export function WellnessMoodPicker({ value, onSelect }: WellnessMoodPickerProps)
             style={[styles.button, value === m.value && styles.buttonSelected]}
             onPress={() => handleSelect(m.value)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: value === m.value }}
+            accessibilityLabel={`${m.label} mood option`}
+            accessibilityHint="Tap to choose how you are feeling"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Text style={styles.emoji}>{m.emoji}</Text>
             <Text style={[styles.label, value === m.value && styles.labelSelected]}>{m.label}</Text>
@@ -61,9 +66,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   button: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: '#f3f4f6',
     alignItems: 'center',
     justifyContent: 'center',
@@ -76,13 +81,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   emoji: {
-    fontSize: 40,
+    fontSize: 44,
   },
   label: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.textLight,
-    marginTop: 4,
+    marginTop: 6,
   },
   labelSelected: {
     color: Colors.primary,

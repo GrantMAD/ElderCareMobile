@@ -30,8 +30,11 @@ export function CheckInFlow({ onSubmit, onCancel }: CheckInFlowProps) {
 
   const handleSubmit = async () => {
     setLoading(true)
-    await onSubmit(data)
-    setLoading(false)
+    try {
+      await onSubmit(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -45,7 +48,11 @@ export function CheckInFlow({ onSubmit, onCancel }: CheckInFlowProps) {
         <View style={{ width: 100 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="automatic"
+      >
         {step === 1 && (
           <WellnessMoodPicker 
             value={data.mood_score} 
@@ -77,12 +84,18 @@ export function CheckInFlow({ onSubmit, onCancel }: CheckInFlowProps) {
         {step === 4 && (
           <View style={styles.finalStep}>
             <Text style={styles.title}>Anything else to share?</Text>
-            <Text style={styles.subtitle}>Optional notes for your family</Text>
+            <Text style={styles.subtitle}>Optional notes for your family — anything you want to share.</Text>
             <TextInput
               style={styles.input}
               multiline
               numberOfLines={4}
               placeholder="E.g., I have a slight headache..."
+              placeholderTextColor={Colors.textLight}
+              autoCapitalize="sentences"
+              autoCorrect
+              textContentType="none"
+              accessibilityLabel="Notes for family"
+              accessibilityHint="Type anything else you want your family to know"
               value={data.notes}
               onChangeText={(text) => setData(d => ({ ...d, notes: text }))}
             />

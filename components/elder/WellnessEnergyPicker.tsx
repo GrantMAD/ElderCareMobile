@@ -31,6 +31,11 @@ export function WellnessEnergyPicker({ value, onSelect }: WellnessEnergyPickerPr
             style={[styles.button, value === l.value && styles.buttonSelected]}
             onPress={() => handleSelect(l.value)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: value === l.value }}
+            accessibilityLabel={`${l.label} energy level`}
+            accessibilityHint={`Tap to choose ${l.label.toLowerCase()}`}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Text style={[styles.label, value === l.value && styles.labelSelected]}>{l.label}</Text>
             <Text style={[styles.desc, value === l.value && styles.descSelected]}>{l.desc}</Text>
@@ -60,7 +65,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    padding: 24,
+    padding: 26,
     borderRadius: 16,
     backgroundColor: '#f3f4f6',
     borderWidth: 2,
@@ -75,13 +80,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   labelSelected: {
     color: Colors.primary,
   },
   desc: {
-    fontSize: 18,
+    fontSize: 20,
     color: Colors.textLight,
   },
   descSelected: {
