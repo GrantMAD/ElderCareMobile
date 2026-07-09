@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, Switch } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/shared/Button'
 import { Colors } from '../../constants/colors'
 import { useSession } from '../../hooks/useSession'
@@ -19,9 +20,19 @@ export default function SettingsScreen() {
       <Text style={styles.title}>Settings</Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Profile</Text>
-        <Text style={styles.infoText}>{user?.full_name}</Text>
-        <Text style={styles.infoText}>{user?.email}</Text>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person" size={32} color={Colors.primary} />
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {user?.full_name || 'Elder User'}
+            </Text>
+            <Text style={styles.profileEmail} numberOfLines={1}>
+              {user?.email}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -68,15 +79,46 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.textLight,
+    fontWeight: '700',
+    color: Colors.text,
     marginBottom: 16,
-    textTransform: 'uppercase',
   },
   infoText: {
-    fontSize: 24,
-    color: Colors.text,
+    fontSize: 16,
+    color: Colors.textSecondary,
     marginBottom: 8,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 4,
   },
   row: {
     flexDirection: 'row',

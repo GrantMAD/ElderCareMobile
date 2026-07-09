@@ -9,7 +9,9 @@ export function useRealtimeAlerts(
   useEffect(() => {
     if (!familyId) return
 
-    const channel = supabase.channel(`family-alerts-${familyId}`)
+    // Append random ID to prevent React Strict Mode unmount/remount races where
+    // Supabase returns an old channel that is already subscribed.
+    const channel = supabase.channel(`family-alerts-${familyId}-${Math.random().toString(36).substring(7)}`)
 
     channel.on(
       'postgres_changes',

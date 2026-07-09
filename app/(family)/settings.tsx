@@ -1,5 +1,6 @@
 import React from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Button } from '../../components/shared/Button'
 import { Card } from '../../components/shared/Card'
@@ -15,9 +16,19 @@ export default function FamilySettingsScreen() {
       <Text style={styles.heading}>Family settings</Text>
 
       <Card style={styles.card} padding="md">
-        <Text style={styles.title}>Profile</Text>
-        <Text style={styles.value}>{user?.full_name ?? 'Family member'}</Text>
-        <Text style={styles.value}>{user?.email ?? ''}</Text>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person" size={32} color={Colors.primary} />
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {user?.full_name || 'Family Member'}
+            </Text>
+            <Text style={styles.profileEmail} numberOfLines={1}>
+              {user?.email}
+            </Text>
+          </View>
+        </View>
       </Card>
 
       <Card style={styles.card} padding="md">
@@ -46,4 +57,31 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: '700', color: Colors.text },
   value: { color: Colors.textSecondary },
   actions: { gap: 8, marginTop: 8 },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
 })

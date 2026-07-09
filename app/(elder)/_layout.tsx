@@ -3,6 +3,7 @@ import { Tabs, Redirect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { useSession } from '../../hooks/useSession'
+import { HeaderMenu } from '../../components/shared/HeaderMenu'
 
 export default function ElderLayout() {
   const { role, loading } = useSession()
@@ -17,8 +18,8 @@ export default function ElderLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textLight,
         tabBarStyle: {
-          height: 80,
-          paddingBottom: 16,
+          height: 85,
+          paddingBottom: 8,
           paddingTop: 12,
         },
         tabBarLabelStyle: {
@@ -26,6 +27,7 @@ export default function ElderLayout() {
           fontWeight: 'bold',
         },
         headerShown: true,
+        headerLeft: () => <HeaderMenu />,
       }}
     >
       <Tabs.Screen
@@ -59,6 +61,7 @@ export default function ElderLayout() {
       <Tabs.Screen
         name="settings"
         options={{
+          href: null,
           title: 'Settings',
           tabBarIcon: ({ color }) => <Ionicons name="settings" size={36} color={color} />,
         }}

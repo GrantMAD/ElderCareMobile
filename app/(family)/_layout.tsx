@@ -1,11 +1,15 @@
 import React from 'react'
-import { Tabs, Redirect } from 'expo-router'
+import { TouchableOpacity } from 'react-native'
+import { Tabs, Redirect, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { useSession } from '../../hooks/useSession'
+import { HeaderMenu } from '../../components/shared/HeaderMenu'
+import { AlertsMenu } from '../../components/shared/AlertsMenu'
 
 export default function FamilyLayout() {
   const { role, loading } = useSession()
+  const router = useRouter()
 
   if (!loading && role !== 'family_member') {
     return <Redirect href="/" />
@@ -17,8 +21,8 @@ export default function FamilyLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textLight,
         tabBarStyle: {
-          height: 80,
-          paddingBottom: 16,
+          height: 85,
+          paddingBottom: 8,
           paddingTop: 12,
         },
         tabBarLabelStyle: {
@@ -26,6 +30,8 @@ export default function FamilyLayout() {
           fontWeight: '700',
         },
         headerShown: true,
+        headerLeft: () => <HeaderMenu />,
+        headerRight: () => <AlertsMenu />,
       }}
     >
       <Tabs.Screen
@@ -59,6 +65,7 @@ export default function FamilyLayout() {
       <Tabs.Screen
         name="alerts"
         options={{
+          href: null,
           title: 'Alerts',
           tabBarIcon: ({ color }) => <Ionicons name="notifications" size={28} color={color} />,
         }}
@@ -73,6 +80,7 @@ export default function FamilyLayout() {
       <Tabs.Screen
         name="settings"
         options={{
+          href: null,
           title: 'More',
           tabBarIcon: ({ color }) => <Ionicons name="settings" size={28} color={color} />,
         }}
