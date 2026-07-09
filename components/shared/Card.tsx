@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, ViewStyle } from 'react-native'
+import { Platform, View, StyleSheet, ViewStyle } from 'react-native'
 import { Colors } from '../../constants/colors'
 
 interface CardProps {
@@ -22,11 +22,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
     elevation: 2,
+    ...(Platform.OS === 'web' ? { boxShadow: '0px 2px 8px rgba(0,0,0,0.06)' } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+    }),
   },
   padding_none: { padding: 0 },
   padding_sm: { padding: 12 },

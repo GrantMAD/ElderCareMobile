@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
   },
-  modeTabActive: { backgroundColor: Colors.background, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  modeTabActive: { backgroundColor: Colors.background, elevation: 2, ...(Platform.OS === 'web' ? { boxShadow: '0px 1px 4px rgba(0,0,0,0.08)' } : { shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4 }) },
   modeTabText: { fontSize: 13, fontWeight: '500', color: Colors.textSecondary },
   modeTabTextActive: { color: Colors.text, fontWeight: '700' },
   form: { marginBottom: 16 },

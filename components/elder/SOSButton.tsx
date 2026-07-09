@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Modal, Pressable, TouchableOpacity, Text, StyleSheet, Alert, View } from 'react-native'
+import { Modal, Platform, Pressable, TouchableOpacity, Text, StyleSheet, Alert, View } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/colors'
 import { supabase } from '../../lib/supabase'
@@ -152,11 +152,13 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Colors.danger,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
     elevation: 8,
+    ...(Platform.OS === 'web' ? { boxShadow: `0px 8px 16px rgba(239,68,68,0.4)` } : {
+      shadowColor: Colors.danger,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+    }),
     alignSelf: 'center',
     marginVertical: 24,
   },
