@@ -17,6 +17,8 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Elder Care Companion uses your location to let family members know you are safe.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Elder Care Companion uses your location in the background to update your family.",
+        "NSPhotoLibraryUsageDescription": "Elder Care Companion needs access to your photos to update your profile picture.",
+        "NSCameraUsageDescription": "Elder Care Companion needs camera access to take a new profile picture.",
         "UIBackgroundModes": [
           "location",
           "fetch"
@@ -37,7 +39,9 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE"
+        "VIBRATE",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -59,7 +63,14 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Elder Care Companion to use your location."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Elder Care Companion needs access to your photos to update your profile picture.",
+          "cameraPermission": "Elder Care Companion needs camera access to take a new profile picture."
+        }
+      ]
     ],
     "scheme": "eldercare",
     "extra": {

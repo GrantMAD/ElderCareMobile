@@ -1,6 +1,5 @@
 import React from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/colors'
 import { Button } from '../../components/shared/Button'
 import { Card } from '../../components/shared/Card'
@@ -14,22 +13,6 @@ export default function FamilySettingsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Family settings</Text>
-
-      <Card style={styles.card} padding="md">
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person" size={32} color={Colors.primary} />
-          </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName} numberOfLines={1}>
-              {user?.full_name || 'Family Member'}
-            </Text>
-            <Text style={styles.profileEmail} numberOfLines={1}>
-              {user?.email}
-            </Text>
-          </View>
-        </View>
-      </Card>
 
       <Card style={styles.card} padding="md">
         <Text style={styles.title}>Subscription</Text>

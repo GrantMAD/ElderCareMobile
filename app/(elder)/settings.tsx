@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, Switch } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import { Button } from '../../components/shared/Button'
 import { Colors } from '../../constants/colors'
 import { useSession } from '../../hooks/useSession'
@@ -18,22 +17,6 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Settings</Text>
-
-      <View style={styles.section}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person" size={32} color={Colors.primary} />
-          </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName} numberOfLines={1}>
-              {user?.full_name || 'Elder User'}
-            </Text>
-            <Text style={styles.profileEmail} numberOfLines={1}>
-              {user?.email}
-            </Text>
-          </View>
-        </View>
-      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Privacy</Text>
