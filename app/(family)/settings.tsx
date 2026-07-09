@@ -8,7 +8,7 @@ import { openStripeCheckout, openStripePortal } from '../../lib/stripe'
 import { supabase } from '../../lib/supabase'
 
 export default function FamilySettingsScreen() {
-  const { user, familyId, loading } = useSession()
+  const { user, familyId, subscriptionTier, loading } = useSession()
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -22,7 +22,9 @@ export default function FamilySettingsScreen() {
 
       <Card style={styles.card} padding="md">
         <Text style={styles.title}>Subscription</Text>
-        <Text style={styles.value}>Family account: {loading ? 'Loading…' : familyId ? 'Connected' : 'Pending'}</Text>
+        <Text style={styles.value}>
+          Family account: {loading ? 'Loading…' : familyId ? (subscriptionTier ? subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1) : 'Connected') : 'Pending'}
+        </Text>
         <View style={styles.actions}>
           <Button label="Upgrade" variant="primary" size="md" onPress={() => openStripeCheckout(process.env.EXPO_PUBLIC_STRIPE_PRICE_BASIC ?? '')} />
           <Button label="Manage billing" variant="secondary" size="md" onPress={() => openStripePortal()} />

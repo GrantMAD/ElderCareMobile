@@ -148,6 +148,7 @@ export interface SessionContext {
   role: UserRole | null
   familyId: string | null
   elderId: string | null
+  subscriptionTier: SubscriptionTier | null
   loading: boolean
 }
 

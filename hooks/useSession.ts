@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Profile, UserRole, SessionContext } from '../types/app'
+import type { Profile, UserRole, SessionContext, SubscriptionTier } from '../types/app'
 
 /**
  * useSession — provides the current authenticated user, their role, and
@@ -11,6 +11,7 @@ import type { Profile, UserRole, SessionContext } from '../types/app'
  *   role       — 'elder' | 'family_member' | ... (or null)
  *   familyId   — UUID of the family the user belongs to (or null)
  *   elderId    — UUID of the elder in the same family (or null if user IS elder)
+ *   subscriptionTier — The family's subscription tier (or null)
  *   loading    — true while the initial session check is running
  */
 export function useSession(): SessionContext {
@@ -18,6 +19,7 @@ export function useSession(): SessionContext {
   const [role, setRole] = useState<UserRole | null>(null)
   const [familyId, setFamilyId] = useState<string | null>(null)
   const [elderId, setElderId] = useState<string | null>(null)
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | null>(null)
   const [loading, setLoading] = useState(true)
 
   async function loadSession(userId: string) {
@@ -40,13 +42,14 @@ export function useSession(): SessionContext {
     // 2. Find the family the user belongs to
     const { data: memberData } = await supabase
       .from('family_members')
-      .select('family_id')
+      .select('family_id, families(subscription_tier)')
       .eq('user_id', userId)
       .maybeSingle()
 
     const memberRow = memberData as any
     const resolvedFamilyId = memberRow?.family_id ?? null
     setFamilyId(resolvedFamilyId)
+    setSubscriptionTier(memberRow?.families?.subscription_tier ?? null)
 
     // 3. If the user is not an elder, find the elder in the same family
     if (profile.role !== 'elder' && resolvedFamilyId) {
@@ -88,6 +91,7 @@ export function useSession(): SessionContext {
         setRole(null)
         setFamilyId(null)
         setElderId(null)
+        setSubscriptionTier(null)
         setLoading(false)
       }
     })
@@ -96,5 +100,5 @@ export function useSession(): SessionContext {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return { user, role, familyId, elderId, loading }
+  return { user, role, familyId, elderId, subscriptionTier, loading }
 }
